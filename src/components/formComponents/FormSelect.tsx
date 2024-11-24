@@ -2,14 +2,14 @@ import React from "react";
 import { useTheme } from "@chakra-ui/react";
 import FromWrapper from "./FormWrapper";
 import { IFormInputProps } from "@src/interface/forms";
-import ReactSelect, { Props } from "react-select";
+import ReactSelect, { Props, StylesConfig } from "react-select";
 
 interface IFormSelectProps
   extends Omit<IFormInputProps, "inputProps" | "type" | "onChange" | "onBlur"> {
-  options: { label: string; value: string }[] | any;
+  options: { label: string; value: string }[];
   selectProps?: Props;
-  onChange?: any;
-  onBlur?: any;
+  onChange?: (name: string, value: string) => void;
+  onBlur?: (name: string, touched: boolean) => void;
 }
 
 const FormSelect: React.FC<IFormSelectProps> = ({
@@ -29,9 +29,12 @@ const FormSelect: React.FC<IFormSelectProps> = ({
 }) => {
   const theme = useTheme();
 
-  const handleChange = (value: any) => {
-    onChange && onChange(name, value?.value);
+
+  const handleChange = (selectedOption: { value: string; label: string }) => {
+    onChange && onChange(name, selectedOption?.value);
   };
+
+  // Handle blur
   const handleBlur = () => {
     onBlur && onBlur(name, true);
   };
@@ -48,53 +51,55 @@ const FormSelect: React.FC<IFormSelectProps> = ({
       <ReactSelect
         name={name}
         placeholder={placeholder}
-        value={options.find((item: { value: string }) => item?.value === value)}
+        value={options.find((item) => item.value === value)}
         onChange={handleChange}
         onBlur={handleBlur}
         options={options}
-        // styles
-        styles={{
-          container: (base) => ({
-            ...base,
-            width: "100%",
-            minWidth: "none",
-            height: "auto",
-            maxHeight: "none",
-            minHeight: "none",
-          }),
-          control: (base, { isFocused }) => ({
-            ...base,
-            width: "100%",
-            minWidth: "272px",
-            height: "45px",
-            border: isFocused
-              ? `1px solid ${theme.colors.primary}`
-              : error
-              ? `1px solid ${theme.colors.errorRed}`
-              : "1px solid #c0bcd7",
-            backgroundColor: theme.colors.inputBg,
-            borderRadius: "10px",
-            fontSize: ".875rem",
-            fontWeight: "500",
-            "&:hover": {
-              border: `1px solid ${theme.colors.primary}`,
-            },
-          }),
-          valueContainer: (base) => ({
-            ...base,
-            paddingLeft: "20px",
-          }),
-          option: (base, { isFocused }) => ({
-            ...base,
-            fontSize: ".875rem",
-            fontWeight: "500",
-          }),
-        }}
+        styles={customStyles(theme, typeof error === 'string' ? error : undefined)}
         {...selectProps}
       />
       {children}
     </FromWrapper>
   );
 };
+
+// Custom styles function to make it more readable and maintainable
+const customStyles = (theme: any, error?: string): StylesConfig => ({
+  container: (base) => ({
+    ...base,
+    width: "100%",
+    minWidth: "none",
+    height: "auto",
+    maxHeight: "none",
+    minHeight: "none",
+  }),
+  control: (base, { isFocused }) => ({
+    ...base,
+    width: "100%",
+    minWidth: "272px",
+    height: "45px",
+    border: isFocused
+      ? `1px solid ${theme.colors.primary}`
+      : error
+        ? `1px solid ${theme.colors.errorRed}`
+        : "1px solid #c0bcd7",
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: "10px",
+    fontSize: ".875rem",
+    fontWeight: "500",
+    "&:hover": {
+      border: `1px solid ${theme.colors.primary}`,
+    },
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    paddingLeft: "20px",
+  }),
+  option: (base, { isFocused }) => ({
+    ...base,
+    fontSize: ".875rem",
+    fontWeight: "500",
+  }),
+});
 
 export default FormSelect;
